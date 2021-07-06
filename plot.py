@@ -10,6 +10,8 @@ def plot_figure(x, y, xlabel='', ylabel='', label=' ', title='', fmt='-'):
     plt.legend()
 
 def plot_probability_varying_parameters(x_v, x_a, probability_function, xlabel='', ylabel='', title=''):
+    #TODO: modfy to be able to plot multiple proability function
+    
     fig = plt.figure(figsize=(20,10))
 
     fig.add_subplot(221)

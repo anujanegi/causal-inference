@@ -71,13 +71,8 @@ class GenerativeModel:
             c_1 = probability_common*self.estimate_best_signal(x_v=x_v, x_a=x_a, cause='common', type=type, sigma_v=sigma_v, sigma_a=sigma_a, sigma_p=sigma_p, mu_p=mu_p)
             c_2 = probability_separate*self.estimate_best_signal(x_v=x_v, x_a=x_a, cause='separate', type=type, sigma_v=sigma_v, sigma_p=sigma_p, mu_p=mu_p)
             
-        
         else: raise ValueError("Type must either be 'video' or 'audio'!")
-
-        # if type=='audio':
-        #     c_1 = prob_common_cause(xv, xa, p_common, sigma_v, sigma_a, sigma_p, mu_p)*optimal_s_common(xv, xa, sigma_v, sigma_a, sigma_p, mu_p)
-        #     c_2 = (1-prob_common_cause(xv, xa, p_common, sigma_v, sigma_a, sigma_p, mu_p))*optimal_sa_separate(xa, sigma_a, sigma_p, mu_p)
-
+        
         return c_1 + c_2
     
     def estimate_best_signal(self, x_v=0, x_a=0, cause='', type='', **kwargs):
