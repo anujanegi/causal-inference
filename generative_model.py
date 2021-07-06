@@ -58,6 +58,7 @@ class GenerativeModel:
     def estimate_signal(self, x_v, x_a, type='', **kwargs):
         #TODO: docstring
 
+        p_common = kwargs.get('p_common', self.p_common)
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
         sigma_a = kwargs.get('sigma_a', self.sigma_a)
         sigma_p = kwargs.get('sigma_p', self.sigma_p)
@@ -65,9 +66,8 @@ class GenerativeModel:
 
         # s_hat_v ~ eq. 9
         if type=='audio' or type=='video':
-            
-            probability_common = self.probability_cause(x_v, x_a, cause='common', sigma_v=sigma_v, sigma_a=sigma_a, sigma_p=sigma_p, mu_p=mu_p)
-            probability_separate = self.probability_cause(x_v, x_a, cause='separate', sigma_v=sigma_v, sigma_a=sigma_a, sigma_p=sigma_p, mu_p=mu_p)
+            probability_common = self.probability_cause(x_v, x_a, cause='common', p_common=p_common, sigma_v=sigma_v, sigma_a=sigma_a, sigma_p=sigma_p, mu_p=mu_p)
+            probability_separate = self.probability_cause(x_v, x_a, cause='separate', p_common=p_common, sigma_v=sigma_v, sigma_a=sigma_a, sigma_p=sigma_p, mu_p=mu_p)
             c_1 = probability_common*self.estimate_best_signal(x_v=x_v, x_a=x_a, cause='common', type=type, sigma_v=sigma_v, sigma_a=sigma_a, sigma_p=sigma_p, mu_p=mu_p)
             c_2 = probability_separate*self.estimate_best_signal(x_v=x_v, x_a=x_a, cause='separate', type=type, sigma_v=sigma_v, sigma_p=sigma_p, mu_p=mu_p)
             
