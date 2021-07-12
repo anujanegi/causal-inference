@@ -1,6 +1,7 @@
-"""model.py: Implementation of methods to understand statistical interraltions between the variables of interest in the generative model"""
+"""model.py: Implementation of methods to understand statistical inter-relations between the variables of interest
+in the generative model"""
 
-from typing import Optional
+# from typing import Optional
 import numpy as np
 
 
@@ -34,7 +35,7 @@ class GenerativeModel:
         Probability of the audio and visual signals(noisy) for the given cause.
         """
 
-        # TODO: common method for intialisation
+        # TODO: common method for initialisation
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
         sigma_a = kwargs.get('sigma_a', self.sigma_a)
         sigma_p = kwargs.get('sigma_p', self.sigma_p)
@@ -140,18 +141,29 @@ class GenerativeModel:
         else:
             raise ValueError("Cause must either be 'common' or 'separate'!")
 
-        def create_stimulus_pairs(self, n):
-            """Creating pairs of "n" number of stimulus.
-            Parameters
-            ----------
-            n: int8
-                number of stimulus pairs
-            Returns
-            ----------
-            pairs: np.array
-                array with the s values of the pairs
-            """
-            prob_common = np.random.uniform(0, 1, n)
-            c_types = prob_common <= self.p_common
+    def create_stimulus_pairs(self, n):
+        """Creating pairs of "n" number of stimulus.
+        Parameters
+        ----------
+        n: int8
+            number of stimulus pairs
+        Returns
+        ----------
+        s: np.array
+            array with the s values of the pairs
+        is_common: bool
+            array containing whether the index of s corresponds to a common (or separate) scenario
+        """
 
+        prob_common = np.random.uniform(0, 1, n)
+        is_common = prob_common <= self.p_common
+        num_common = sum(is_common)
 
+        s_common = np.random.normal(0, self.sigma_p, num_common)
+        s_common = np.vstack((s_common, s_common)).T
+
+        s_separate = np.random.normal(0, self.sigma_p, [n-num_common, 2])
+
+        s = np.concatenate((s_common, s_separate))
+
+        return s, is_common
