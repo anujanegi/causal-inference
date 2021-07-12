@@ -147,6 +147,7 @@ class GenerativeModel:
         ----------
         n: int8
             number of stimulus pairs
+
         Returns
         ----------
         s: np.array
@@ -167,3 +168,20 @@ class GenerativeModel:
         s = np.concatenate((s_common, s_separate))
 
         return s, is_common
+
+    def make_button_presses(self, trials):
+        """Creating pairs of "n" number of stimulus.
+
+        Parameters
+        ----------
+        trials: int8
+            number of trials
+
+        Returns
+        ----------
+        button_presses: np.array
+            array with the positions of the buttons pressed
+        """
+
+        mean_ranges = np.array([-12, 6, 0, 6, 12])
+
