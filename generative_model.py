@@ -15,6 +15,8 @@ class GenerativeModel:
         self.sigma_p = 15
         self.mu_p = 0
 
+    def create_stimulus_pairs
+
     def probability_signal(self, x_v, x_a, cause='', **kwargs):
         """
         Estimates the probability of the audio and visual signals(noisy) given the cause.
@@ -124,3 +126,24 @@ class GenerativeModel:
         elif cause == 'separate':
             return 1-probability_common_cause
         else: raise ValueError("Cause must either be 'common' or 'separate'!")
+
+    def x_given_s(self, x, s, type='', **kwargs):
+
+        if type == 'video':
+            sigma_v = kwargs.get('sigma_v', self.sigma_v)
+
+            dividend = np.exp(-(x-s)**2/(2*sigma_v**2))
+            divisor = (sigma_v ** 2)*2*np.pi
+
+            return dividend/divisor
+
+        elif type == 'audio':
+            sigma_a = kwargs.get('sigma_a', self.sigma_a)
+
+            dividend = np.exp(-(x - s) ** 2 / (2 * sigma_a ** 2))
+            dividend = np.exp(-(x - s) ** 2 / (2 * sigma_a ** 2))
+            divisor = (sigma_a ** 2) * 2 * np.pi
+
+            return dividend / divisor
+        else:
+            raise ValueError("Type must either be 'video' or 'audio'!")
