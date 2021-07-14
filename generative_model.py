@@ -144,7 +144,7 @@ class GenerativeModel:
         stimulus_pairs = np.zeros((n, 2))
         probability_common = np.random.rand(n)
         cause = np.random.binomial(1, probability_common, n)+1
-        is_common = (cause-1).astype(bool)
+        is_common = np.logical_not((cause-1).astype(bool))
 
         stimulus_pairs[cause==1, 0] = stimulus_pairs[cause==1, 1] = np.random.normal(0, sigma_p, np.sum(cause==1))
         stimulus_pairs[cause==2, :] = np.random.normal(0, sigma_p, (np.sum(cause==2), 2))
