@@ -126,7 +126,7 @@ class GenerativeModel:
     def generate_stimulus_pairs(self, n, **kwargs):
         """
         Generate n stimuls pairs.
-        
+
         Parameters
         ----------
         n: int
@@ -147,7 +147,7 @@ class GenerativeModel:
         is_common = (cause-1).astype(bool)
 
         stimulus_pairs[cause==1, 0] = stimulus_pairs[cause==1, 1] = np.random.normal(0, sigma_p, np.sum(cause==1))
-        stimulus_pairs[cause==2, :] = np.random.normal(0, sigma_p, np.sum(cause==2))
+        stimulus_pairs[cause==2, :] = np.random.normal(0, sigma_p, (np.sum(cause==2), 2))
 
         return stimulus_pairs, is_common
 
