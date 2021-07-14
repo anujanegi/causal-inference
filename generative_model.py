@@ -3,8 +3,6 @@ in the generative model"""
 
 # from typing import Optional
 import numpy as np
-
-
 class GenerativeModel:
 
     def __init__(self):
@@ -34,7 +32,6 @@ class GenerativeModel:
         -------
         Probability of the audio and visual signals(noisy) for the given cause.
         """
-
         # TODO: common method for initialisation
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
         sigma_a = kwargs.get('sigma_a', self.sigma_a)
@@ -43,16 +40,13 @@ class GenerativeModel:
 
         # p(x_v, x_a | C = 1) ~ eq. 4
         if cause == 'common':
-            factor = ((sigma_v ** 2) * (sigma_a ** 2)) + ((sigma_v ** 2) * (sigma_p ** 2)) + (
-                        (sigma_p ** 2) * (sigma_a ** 2))
-            exponent = ((((x_v - x_a) ** 2) * (sigma_p ** 2)) + (((x_v - mu_p) ** 2) * (sigma_a ** 2)) + (
-                        ((x_a - mu_p) ** 2) * (sigma_v ** 2))) / factor
+            factor = ((sigma_v ** 2) * (sigma_a ** 2)) + ((sigma_v ** 2) * (sigma_p ** 2)) + ((sigma_p ** 2) * (sigma_a ** 2))
+            exponent = ((((x_v - x_a) ** 2) * (sigma_p ** 2)) + (((x_v - mu_p) ** 2) * (sigma_a ** 2)) + (((x_a - mu_p) ** 2) * (sigma_v ** 2))) / factor
             probability = np.exp(-exponent / 2) / (np.sqrt(factor) * 2 * np.pi)
         # p(x_v, x_a | C = 2) ~ eq. 6
         elif cause == 'separate':
             factor = ((sigma_v ** 2) + (sigma_p ** 2)) * ((sigma_a ** 2) + (sigma_p ** 2))
-            exponent = (((x_v - mu_p) ** 2) / ((sigma_v ** 2) + (sigma_p ** 2))) + (
-                        ((x_a - mu_p) ** 2) / ((sigma_a ** 2) + (sigma_p ** 2)))
+            exponent = (((x_v - mu_p) ** 2) / ((sigma_v ** 2) + (sigma_p ** 2))) + (((x_a - mu_p) ** 2) / ((sigma_a ** 2) + (sigma_p ** 2)))
             probability = np.exp(-exponent / 2) / (np.sqrt(factor) * 2 * np.pi)
         else:
             raise ValueError("Cause must either be 'common' or 'separate'!")
@@ -70,16 +64,10 @@ class GenerativeModel:
 
         # s_hat_v ~ eq. 9
         if type == 'audio' or type == 'video':
-            probability_common = self.probability_cause(x_v, x_a, cause='common', p_common=p_common, sigma_v=sigma_v,
-                                                        sigma_a=sigma_a, sigma_p=sigma_p, mu_p=mu_p)
-            probability_separate = self.probability_cause(x_v, x_a, cause='separate', p_common=p_common,
-                                                          sigma_v=sigma_v, sigma_a=sigma_a, sigma_p=sigma_p, mu_p=mu_p)
-            c_1 = probability_common * self.estimate_best_signal(x_v=x_v, x_a=x_a, cause='common', type=type,
-                                                                 sigma_v=sigma_v, sigma_a=sigma_a, sigma_p=sigma_p,
-                                                                 mu_p=mu_p)
-            c_2 = probability_separate * self.estimate_best_signal(x_v=x_v, x_a=x_a, cause='separate', type=type,
-                                                                   sigma_v=sigma_v, sigma_p=sigma_p, mu_p=mu_p)
-
+            probability_common = self.probability_cause(x_v, x_a, cause='common', p_common=p_common, sigma_v=sigma_v, sigma_a=sigma_a, sigma_p=sigma_p, mu_p=mu_p)
+            probability_separate = self.probability_cause(x_v, x_a, cause='separate', p_common=p_common, sigma_v=sigma_v, sigma_a=sigma_a, sigma_p=sigma_p, mu_p=mu_p)
+            c_1 = probability_common * self.estimate_best_signal(x_v=x_v, x_a=x_a, cause='common', type=type, sigma_v=sigma_v, sigma_a=sigma_a, sigma_p=sigma_p, mu_p=mu_p)
+            c_2 = probability_separate * self.estimate_best_signal(x_v=x_v, x_a=x_a, cause='separate', type=type, sigma_v=sigma_v, sigma_p=sigma_p, mu_p=mu_p)
         else:
             raise ValueError("Type must either be 'video' or 'audio'!")
 
@@ -100,15 +88,12 @@ class GenerativeModel:
 
         # eq. 11
         elif cause == 'separate':
-
             if type == 'video':
                 dividend = x_v / (sigma_v ** 2) + mu_p / (sigma_p ** 2)
                 divisor = (1 / (sigma_v ** 2)) + (1 / (sigma_p ** 2))
-
             elif type == 'audio':
                 dividend = x_a / (sigma_a ** 2) + mu_p / (sigma_p ** 2)
                 divisor = (1 / (sigma_a ** 2)) + (1 / (sigma_p ** 2))
-
             else:
                 raise ValueError("Type must either be 'video' or 'audio'!")
 
@@ -126,13 +111,10 @@ class GenerativeModel:
         sigma_p = kwargs.get('sigma_p', self.sigma_p)
         mu_p = kwargs.get('mu_p', self.mu_p)
 
-        probability_common = self.probability_signal(x_v, x_a, cause='common', sigma_v=sigma_v, sigma_a=sigma_a,
-                                                     sigma_p=sigma_p, mu_p=mu_p)
-        probability_separate = self.probability_signal(x_v, x_a, cause='separate', sigma_v=sigma_v, sigma_a=sigma_a,
-                                                       sigma_p=sigma_p, mu_p=mu_p)
+        probability_common = self.probability_signal(x_v, x_a, cause='common', sigma_v=sigma_v, sigma_a=sigma_a, sigma_p=sigma_p, mu_p=mu_p)
+        probability_separate = self.probability_signal(x_v, x_a, cause='separate', sigma_v=sigma_v, sigma_a=sigma_a, sigma_p=sigma_p, mu_p=mu_p)
         # p(C = 1 | x_v, x_a)  ~ eq. 2
-        probability_common_cause = (probability_common * p_common) / (
-                    (probability_common * p_common) + (probability_separate * (1 - p_common)))
+        probability_common_cause = (probability_common * p_common) / ((probability_common * p_common) + (probability_separate * (1 - p_common)))
 
         if cause == 'common':
             return probability_common_cause
@@ -155,7 +137,6 @@ class GenerativeModel:
         is_common: bool
             array containing whether the index of s corresponds to a common (or separate) scenario
         """
-
         prob_common = np.random.uniform(0, 1, n)
         is_common = prob_common <= self.p_common
         num_common = sum(is_common)
@@ -182,6 +163,5 @@ class GenerativeModel:
         button_presses: np.array
             array with the positions of the buttons pressed
         """
-
         mean_ranges = np.array([-12, 6, 0, 6, 12])
 
