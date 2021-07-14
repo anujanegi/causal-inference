@@ -3,6 +3,8 @@ in the generative model"""
 
 # from typing import Optional
 import numpy as np
+from itertools import product
+import matplotlib.pyplot as plt
 class GenerativeModel:
 
     def __init__(self):
@@ -13,6 +15,7 @@ class GenerativeModel:
         self.sigma_a = 3.1
         self.sigma_p = 15
         self.mu_p = 0
+        self.range = np.array([-np.inf, -9, -3, 3, 9, np.inf])
 
     def probability_signal(self, x_v, x_a, cause='', **kwargs):
         """
@@ -125,7 +128,7 @@ class GenerativeModel:
 
     def generate_stimulus_pairs(self, n, **kwargs):
         """
-        Generate n stimuls pairs.
+        Generate n stimulus pairs.
 
         Parameters
         ----------
@@ -151,18 +154,39 @@ class GenerativeModel:
 
         return stimulus_pairs, is_common
 
-    def make_button_presses(self, trials):
-        """Creating pairs of "n" number of stimulus.
+    def make_button_presses(self, n, stimulus_pairs=None, plot=True, **kwargs):
+        # TODO: docstring
+        #stimulus_pairs = np.array of [s_v, s_a]'s
 
-        Parameters
-        ----------
-        trials: int8
-            number of trials
+        sigma_v = kwargs.get('sigma_v', self.sigma_v)
+        sigma_a = kwargs.get('sigma_a', self.sigma_a)
 
-        Returns
-        ----------
-        button_presses: np.array
-            array with the positions of the buttons pressed
-        """
-        mean_ranges = np.array([-12, 6, 0, 6, 12])
+        if stimulus_pairs is None:
+            stimulus_pairs = np.array(list(product(self.s_v, self.s_a)))
+        
+        v_histogram = a_histogram = []
 
+        for s_v, s_a in stimulus_pairs:
+            x_v = np.random.normal(s_v, sigma_v, n)
+            x_a = np.random.normal(s_a, sigma_a, n)
+            s_v_estimate = self.estimate_signal(x_v, x_a, 'video')
+            s_a_estimate = self.estimate_signal(x_v, x_a, 'audio')
+            
+            histogram_v, _ = np.histogram(s_v_estimate, self.range)
+            histogram_a, _ = np.histogram(s_a_estimate, self.range)
+
+            v_histogram.append(histogram_v)
+            a_histogram.append(histogram_a)
+            
+            if plot:
+                x = np.sort(np.unique(stimulus_pairs[:, 0]))
+                plt.bar(x, histogram_v, tick_label=x, alpha=.7, label='video')
+                x = np.sort(np.unique(stimulus_pairs[:, 1]))
+                plt.bar(x, histogram_a, tick_label=x, alpha=.7, label='audio')
+                plt.xlabel('Position estimates; $\hat{s_V}$, $\hat{s_V}$')
+                plt.ylabel('Count')
+                plt.title('Position estimates for $s_V$=%.1f, $s_a$=%.1f,'%(s_v, s_a))
+                plt.legend()
+                plt.show()
+
+        return v_histogram, a_histogram
