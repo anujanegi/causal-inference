@@ -154,15 +154,16 @@ class GenerativeModel:
 
         return stimulus_pairs, is_common
 
-    def make_button_presses(self, n, stimulus_pairs=None, plot=True, **kwargs):
+    def make_button_presses(self, n, stimulus_pairs=None, bins=None, plot=True, **kwargs):
         # TODO: docstring
         #stimulus_pairs = np.array of [s_v, s_a]'s
 
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
         sigma_a = kwargs.get('sigma_a', self.sigma_a)
 
-        if stimulus_pairs is None:
-            stimulus_pairs = np.array(list(product(self.s_v, self.s_a)))
+        
+        stimulus_pairs = np.array(list(product(self.s_v, self.s_a))) if stimulus_pairs is None else stimulus_pairs
+        bins = self.range if bins is None else bins
         
         v_histogram = a_histogram = []
 
@@ -172,16 +173,17 @@ class GenerativeModel:
             s_v_estimate = self.estimate_signal(x_v, x_a, 'video')
             s_a_estimate = self.estimate_signal(x_v, x_a, 'audio')
             
-            histogram_v, _ = np.histogram(s_v_estimate, self.range)
-            histogram_a, _ = np.histogram(s_a_estimate, self.range)
+            histogram_v, _ = np.histogram(s_v_estimate, bins)
+            histogram_a, _ = np.histogram(s_a_estimate, bins)
 
             v_histogram.append(histogram_v)
             a_histogram.append(histogram_a)
             
+            # TODO: shift plotting to plot.py
             if plot:
-                x = np.sort(np.unique(stimulus_pairs[:, 0]))
+                x = np.round(np.linspace(min(stimulus_pairs[:, 0]), max(stimulus_pairs[:, 0]), bins.size-1), 2)
                 plt.bar(x, histogram_v, tick_label=x, alpha=.7, label='video')
-                x = np.sort(np.unique(stimulus_pairs[:, 1]))
+                x = np.round(np.linspace(min(stimulus_pairs[:, 1]), max(stimulus_pairs[:, 1]), bins.size-1), 2)
                 plt.bar(x, histogram_a, tick_label=x, alpha=.7, label='audio')
                 plt.xlabel('Position estimates; $\hat{s_V}$, $\hat{s_V}$')
                 plt.ylabel('Count')
