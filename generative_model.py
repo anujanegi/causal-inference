@@ -123,32 +123,33 @@ class GenerativeModel:
         else:
             raise ValueError("Cause must either be 'common' or 'separate'!")
 
-    def create_stimulus_pairs(self, n):
-        """Creating pairs of "n" number of stimulus.
+    def generate_stimulus_pairs(self, n, **kwargs):
+        """
+        Generate n stimuls pairs.
+        
         Parameters
         ----------
-        n: int8
-            number of stimulus pairs
+        n: int
+            number of stimulus pairs to be generated
 
         Returns
         ----------
-        s: np.array
+        stimulus_pairs: np.array
             array with the s values of the pairs
         is_common: bool
-            array containing whether the index of s corresponds to a common (or separate) scenario
+            True if index of stimulus pair has a common cause
         """
-        prob_common = np.random.uniform(0, 1, n)
-        is_common = prob_common <= self.p_common
-        num_common = sum(is_common)
+        sigma_p = kwargs.get('sigma_p', self.sigma_p)
 
-        s_common = np.random.normal(0, self.sigma_p, num_common)
-        s_common = np.vstack((s_common, s_common)).T
+        stimulus_pairs = np.zeros((n, 2))
+        probability_common = np.random.rand(n)
+        cause = np.random.binomial(1, probability_common, n)+1
+        is_common = (cause-1).astype(bool)
 
-        s_separate = np.random.normal(0, self.sigma_p, [n-num_common, 2])
+        stimulus_pairs[cause==1, 0] = stimulus_pairs[cause==1, 1] = np.random.normal(0, sigma_p, np.sum(cause==1))
+        stimulus_pairs[cause==2, :] = np.random.normal(0, sigma_p, np.sum(cause==2))
 
-        s = np.concatenate((s_common, s_separate))
-
-        return s, is_common
+        return stimulus_pairs, is_common
 
     def make_button_presses(self, trials):
         """Creating pairs of "n" number of stimulus.
