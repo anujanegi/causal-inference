@@ -1,8 +1,6 @@
 """model.py: Implementation of methods to understand statistical inter-relations between the variables of interest
 in the generative model"""
 
-# from typing import Optional
-import emcee
 import numpy as np
 from itertools import product
 import matplotlib.pyplot as plt
@@ -172,43 +170,41 @@ class GenerativeModel:
 
         return stimulus_pairs, is_common
 
-    def make_button_presses(self, n, stimulus_pairs=None, bins=None, plot=True, **kwargs):
+    def make_button_presses(self, stimulus_pairs, bins=None, plot=True, **kwargs):
         # TODO: docstring
         # stimulus_pairs = np.array of [s_v, s_a]'s
 
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
         sigma_a = kwargs.get('sigma_a', self.sigma_a)
-
-        stimulus_pairs = np.array(list(product(self.s_v, self.s_a))) if stimulus_pairs is None else stimulus_pairs
         bins = self.range if bins is None else bins
 
-        v_histogram = a_histogram = []
-
-        for s_v, s_a in stimulus_pairs:
+        v_histogram, a_histogram = [], []
+        stimulus_pairs_unique, count = np.unique(stimulus_pairs, axis=0, return_counts=True)
+        
+        for (s_v, s_a), n in zip(stimulus_pairs_unique, count):
             x_v = np.random.normal(s_v, sigma_v, n)
             x_a = np.random.normal(s_a, sigma_a, n)
             s_v_estimate = self.estimate_signal(x_v, x_a, 'video')
             s_a_estimate = self.estimate_signal(x_v, x_a, 'audio')
 
-            histogram_v, _ = np.histogram(s_v_estimate, bins)
-            histogram_a, _ = np.histogram(s_a_estimate, bins)
+            np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+            histogram_v, _ = np.histogram(s_v_estimate, bins)/n
+            histogram_a, _ = np.histogram(s_a_estimate, bins)/n
 
             v_histogram.append(histogram_v)
             a_histogram.append(histogram_a)
 
             # TODO: shift plotting to plot.py
             if plot:
-                x = np.round(np.linspace(min(stimulus_pairs[:, 0]), max(stimulus_pairs[:, 0]), bins.size - 1), 2)
-                plt.bar(x, histogram_v, tick_label=x, alpha=.7, label='video')
-                x = np.round(np.linspace(min(stimulus_pairs[:, 1]), max(stimulus_pairs[:, 1]), bins.size - 1), 2)
-                plt.bar(x, histogram_a, tick_label=x, alpha=.7, label='audio')
+                plt.bar(self.s_v, histogram_v, tick_label=self.s_v, alpha=.7, label='video')
+                plt.bar(self.s_a, histogram_a, tick_label=self.s_a, alpha=.7, label='audio')
                 plt.xlabel('Position estimates; $\hat{s_V}$, $\hat{s_V}$')
-                plt.ylabel('Count')
+                plt.ylabel('Probability')
                 plt.title('Position estimates for $s_V$=%.1f, $s_a$=%.1f,' % (s_v, s_a))
                 plt.legend()
                 plt.show()
 
-        return v_histogram, a_histogram
+        return np.array(v_histogram), np.array(a_histogram)
 
     # Log likelihood calculation (1d)
     def log_likelihood(self, trials=10000, eps=1e-5):
