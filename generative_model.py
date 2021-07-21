@@ -165,6 +165,10 @@ class GenerativeModel:
 
         stimulus_pairs[cause == 1, 0] = stimulus_pairs[cause == 1, 1] = np.random.normal(0, sigma_p, np.sum(cause == 1))
         stimulus_pairs[cause == 2, :] = np.random.normal(0, sigma_p, (np.sum(cause == 2), 2))
+        
+        # map stimulus pairs
+        stimulus_pairs[:, 0] = [min(self.s_v, key=lambda x:abs(x-i)) for i in stimulus_pairs[:, 0]]
+        stimulus_pairs[:, 1] = [min(self.s_a, key=lambda x:abs(x-i)) for i in stimulus_pairs[:, 1]]
 
         return stimulus_pairs, is_common
 
