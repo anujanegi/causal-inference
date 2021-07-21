@@ -178,7 +178,7 @@ class GenerativeModel:
         sigma_a = kwargs.get('sigma_a', self.sigma_a)
         bins = self.range if bins is None else bins
 
-        v_histogram, a_histogram = [], []
+        histogram_vs, histogram_as = [], []
         stimulus_pairs_unique, count = np.unique(stimulus_pairs, axis=0, return_counts=True)
         
         for (s_v, s_a), n in zip(stimulus_pairs_unique, count):
@@ -190,21 +190,28 @@ class GenerativeModel:
             np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
             histogram_v, _ = np.histogram(s_v_estimate, bins)/n
             histogram_a, _ = np.histogram(s_a_estimate, bins)/n
+            histogram_vs.append(histogram_v)
+            histogram_as.append(histogram_a)     
 
-            v_histogram.append(histogram_v)
-            a_histogram.append(histogram_a)
-
-            # TODO: shift plotting to plot.py
-            if plot:
-                plt.bar(self.s_v, histogram_v, tick_label=self.s_v, alpha=.7, label='video')
-                plt.bar(self.s_a, histogram_a, tick_label=self.s_a, alpha=.7, label='audio')
-                plt.xlabel('Position estimates; $\hat{s_V}$, $\hat{s_V}$')
-                plt.ylabel('Probability')
-                plt.title('Position estimates for $s_V$=%.1f, $s_a$=%.1f,' % (s_v, s_a))
-                plt.legend()
-                plt.show()
-
-        return np.array(v_histogram), np.array(a_histogram)
+        histogram_vs, histogram_as = np.array(histogram_vs), np.array(histogram_as)
+        
+        # TODO: shift plotting to plot.py
+        if plot:
+            fig, axs = plt.subplots(len(self.s_v), len(self.s_a), figsize=(20, 20))
+            for (i, j), k in zip(np.array(list(product(range(len(self.s_v)), range(len(self.s_a))))), range(len(stimulus_pairs_unique))):
+            # for i in range(len(self.s_v)):
+            #     for j in range(len(self.s_a)):
+                axs[i][j].bar(self.s_v, histogram_vs[k], tick_label=self.s_v, alpha=.7, label='video')
+                axs[i][j].bar(self.s_a, histogram_as[k], tick_label=self.s_a, alpha=.7, label='audio')
+                axs[i][j].set_xlabel('Position estimates; $\hat{s_V}$, $\hat{s_V}$')
+                axs[i][j].set_ylabel('Probability')
+                axs[i][j].set_title('Position estimates for $s_V$=%.1f, $s_a$=%.1f,' % (stimulus_pairs_unique[k][0], stimulus_pairs_unique[k][1]))
+                
+            fig.tight_layout()
+            plt.legend(loc="upper left", bbox_to_anchor=(1,0))
+            plt.show()
+               
+        return np.array(histogram_vs), np.array(histogram_as)
 
     # Log likelihood calculation (1d)
     def log_likelihood(self, trials=10000, eps=1e-5):
