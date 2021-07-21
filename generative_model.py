@@ -218,17 +218,13 @@ class GenerativeModel:
         p_v = np.sum(s_hat_v_hist_model, axis = 0) / np.sum(s_hat_v_hist_model)
 
         log_like = np.zeros(2)  # one for s_v, one for s_a
-        log_like_prob = np.zeros((p_a.shape[0],2))
 
-        log_like_prob[:, 0] = (n_a + eps * np.log(p_a + eps))
-        log_like_prob[:, 1] = (n_v + eps * np.log(p_v + eps))
-
-        log_like[0] = (n_a + eps * np.log(p_a + eps)).sum()  # log likelihood for sigma_a
-        log_like[1] = (n_v + eps * np.log(p_v + eps)).sum()  # log likelihood for sigma_v
+        log_like[0] = (n_a * np.log(p_a + eps)).sum()  # log likelihood for sigma_a
+        log_like[1] = (n_v * np.log(p_v + eps)).sum()  # log likelihood for sigma_v
 
         # TODO: do not know whether the two log likelihoods should be separated or we should have
         # joined them somehow in a previous step.
-        return log_like_prob, log_like.sum()  # returns log likelihood of parameters fitting data
+        return log_like.sum()/2  # returns log likelihood of parameters fitting data
 
     # Brute fitting (1f)
     def brute_fitting(self, n_sample=10, trials = 10000):
@@ -250,7 +246,7 @@ class GenerativeModel:
                     self.sigma_a = sa
                     for sp in sigmas_p:
                         self.sigma_p = sp
-                        _, likelihood[num] = self.log_likelihood(trials)
+                        likelihood[num] = self.log_likelihood(trials)
                         parameters[num, :] = np.array([p, sv, sa, sp])
                         print(likelihood[num])
                         num += 1
@@ -265,7 +261,7 @@ class GenerativeModel:
         for i, param in enumerate(parameters):
             ## TODO: State which parameter needs to be changed.
             # self.x = param
-            _, log_like[i] = self.log_likelihood()
+            log_like[i] = self.log_likelihood()
 
         prior = rectangular_prior(parameter1, parameter2, num_bins)[0]
         log_prior = np.log(prior/np.sum(prior))
