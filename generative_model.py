@@ -188,8 +188,8 @@ class GenerativeModel:
             s_a_estimate = self.estimate_signal(x_v, x_a, 'audio')
 
             np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
-            histogram_v, _ = np.histogram(s_v_estimate, bins)/n
-            histogram_a, _ = np.histogram(s_a_estimate, bins)/n
+            histogram_v, _ = np.histogram(s_v_estimate, bins)
+            histogram_a, _ = np.histogram(s_a_estimate, bins)
             histogram_vs.append(histogram_v)
             histogram_as.append(histogram_a)     
 
@@ -199,12 +199,10 @@ class GenerativeModel:
         if plot:
             fig, axs = plt.subplots(len(self.s_v), len(self.s_a), figsize=(20, 20))
             for (i, j), k in zip(np.array(list(product(range(len(self.s_v)), range(len(self.s_a))))), range(len(stimulus_pairs_unique))):
-            # for i in range(len(self.s_v)):
-            #     for j in range(len(self.s_a)):
                 axs[i][j].bar(self.s_v, histogram_vs[k], tick_label=self.s_v, alpha=.7, label='video')
                 axs[i][j].bar(self.s_a, histogram_as[k], tick_label=self.s_a, alpha=.7, label='audio')
                 axs[i][j].set_xlabel('Position estimates; $\hat{s_V}$, $\hat{s_V}$')
-                axs[i][j].set_ylabel('Probability')
+                axs[i][j].set_ylabel('Count')
                 axs[i][j].set_title('Position estimates for $s_V$=%.1f, $s_a$=%.1f,' % (stimulus_pairs_unique[k][0], stimulus_pairs_unique[k][1]))
                 
             fig.tight_layout()
@@ -213,25 +211,24 @@ class GenerativeModel:
                
         return np.array(histogram_vs), np.array(histogram_as)
 
-    # Log likelihood calculation (1d)
-    def log_likelihood(self, trials=10000, eps=1e-5):
-        s_hat_v_hist, s_hat_a_hist = self.make_button_presses(trials, plot=False)
-        n_v = np.sum(s_hat_v_hist,axis=0)/np.sum(s_hat_v_hist)  # observed response counts, per auditory condition
-        n_a = np.sum(s_hat_a_hist,axis=0)/np.sum(s_hat_a_hist)  # ... and visual condition
+    def log_likelihood(self, s_hat_v_hist=None, s_hat_a_hist=None, trials=10000, eps=1e-5, **kwargs):
+        
+        sigma_p = kwargs.get('sigma_p', self.sigma_p)
+        
+        if s_hat_v_hist.all() or s_hat_a_hist.all() == None:
+            stimulus_pairs, _ = self.generate_stimulus_pairs(trials, sigma_p=sigma_p)
+            s_hat_v_hist, s_hat_a_hist = self.make_button_presses(stimulus_pairs, plot=False)
+            
+        n_v = np.sum(s_hat_v_hist,axis=0)/np.sum(s_hat_v_hist)  # observed response counts, per visual condition
+        n_a = np.sum(s_hat_a_hist,axis=0)/np.sum(s_hat_a_hist)  # ... and auditory condition
 
-        s_hat_v_hist_model, s_hat_a_hist_model = self.make_button_presses(trials * 10, plot=False)
+        stimulus_pairs, _ = self.generate_stimulus_pairs(trials*10, sigma_p=sigma_p)
+        s_hat_v_hist_model, s_hat_a_hist_model = self.make_button_presses(stimulus_pairs, plot=False)
 
-        p_a = np.sum(s_hat_a_hist_model, axis = 0) / np.sum(s_hat_a_hist_model)  # probability of button press for each auditory bin
-        p_v = np.sum(s_hat_v_hist_model, axis = 0) / np.sum(s_hat_v_hist_model)
+        p_a = np.sum(s_hat_a_hist_model, axis=0)/np.sum(s_hat_a_hist_model) 
+        p_v = np.sum(s_hat_v_hist_model, axis=0)/np.sum(s_hat_v_hist_model)
 
-        log_like = np.zeros(2)  # one for s_v, one for s_a
-
-        log_like[0] = (n_a * np.log(p_a + eps)).sum()  # log likelihood for sigma_a
-        log_like[1] = (n_v * np.log(p_v + eps)).sum()  # log likelihood for sigma_v
-
-        # TODO: do not know whether the two log likelihoods should be separated or we should have
-        # joined them somehow in a previous step.
-        return log_like.sum()/2  # returns log likelihood of parameters fitting data
+        return (n_a * np.log(p_a + eps)).sum() + (n_v * np.log(p_v + eps)).sum()
 
     # Brute fitting (1f)
     def brute_fitting(self, n_sample=10, trials = 10000):
