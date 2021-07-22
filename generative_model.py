@@ -187,7 +187,6 @@ class GenerativeModel:
             s_v_estimate = self.estimate_signal(x_v, x_a, 'video')
             s_a_estimate = self.estimate_signal(x_v, x_a, 'audio')
 
-            np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
             histogram_v, _ = np.histogram(s_v_estimate, bins)
             histogram_a, _ = np.histogram(s_a_estimate, bins)
             histogram_vs.append(histogram_v)
@@ -211,11 +210,11 @@ class GenerativeModel:
                
         return np.array(histogram_vs), np.array(histogram_as)
 
-    def log_likelihood(self, s_hat_v_hist=None, s_hat_a_hist=None, trials=10000, eps=1e-5, **kwargs):
+    def log_likelihood(self, s_hat_v_hist=np.array([]), s_hat_a_hist=np.array([]), trials=10000, eps=1e-5, **kwargs):
         
         sigma_p = kwargs.get('sigma_p', self.sigma_p)
         
-        if s_hat_v_hist.all() or s_hat_a_hist.all() == None:
+        if s_hat_v_hist.all() or s_hat_a_hist.all() == np.array([]):
             stimulus_pairs, _ = self.generate_stimulus_pairs(trials, sigma_p=sigma_p)
             s_hat_v_hist, s_hat_a_hist = self.make_button_presses(stimulus_pairs, plot=False)
             
