@@ -242,15 +242,12 @@ class GenerativeModel:
         parameters = np.zeros((int(n_sample ** 4), 4))
         num = 0
 
+        # TODO: zip parameter combinations
         for p in p_common:
-            self.p_common = p
             for sv in sigmas_v:
-                self.sigma_p = sv
                 for sa in sigmas_a:
-                    self.sigma_a = sa
                     for sp in sigmas_p:
-                        self.sigma_p = sp
-                        likelihood[num] = self.log_likelihood()
+                        likelihood[num] = self.log_likelihood(p_commom=p, sigma_v=sv, sigma_a=sa, sigma_p=sp)
                         parameters[num, :] = np.array([p, sv, sa, sp])
                         print(likelihood[num])
                         num += 1
