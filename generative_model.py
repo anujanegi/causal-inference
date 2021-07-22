@@ -154,11 +154,11 @@ class GenerativeModel:
         is_common: bool
             True if index of stimulus pair has a common cause
         """
+        p_common = kwargs.get('p_common', self.p_common)
         sigma_p = kwargs.get('sigma_p', self.sigma_p)
 
         stimulus_pairs = np.zeros((n, 2))
-        probability_common = np.random.rand(n)
-        cause = np.random.binomial(1, probability_common, n) + 1
+        cause = np.random.binomial(1, p_common, n) + 1
         is_common = np.logical_not((cause - 1).astype(bool))
 
         stimulus_pairs[cause == 1, 0] = stimulus_pairs[cause == 1, 1] = np.random.normal(0, sigma_p, np.sum(cause == 1))
@@ -210,29 +210,30 @@ class GenerativeModel:
                
         return np.array(histogram_vs), np.array(histogram_as)
 
-    def log_likelihood(self, s_hat_v_hist=np.array([]), s_hat_a_hist=np.array([]), trials=10000, eps=1e-5, **kwargs):
+    def log_likelihood(self, s_hat_v_hist=np.array([]), s_hat_a_hist=np.array([]), trials=10_000, eps=1e-5, **kwargs):
         
+        p_common = kwargs.get('p_common', self.p_common)
         sigma_p = kwargs.get('sigma_p', self.sigma_p)
+        sigma_v = kwargs.get('sigma_v', self.sigma_v)
+        sigma_a = kwargs.get('sigma_a', self.sigma_a)
         
         if s_hat_v_hist.all() or s_hat_a_hist.all() == np.array([]):
-            stimulus_pairs, _ = self.generate_stimulus_pairs(trials, sigma_p=sigma_p)
-            s_hat_v_hist, s_hat_a_hist = self.make_button_presses(stimulus_pairs, plot=False)
+            stimulus_pairs, _ = self.generate_stimulus_pairs(trials, p_common=p_common, sigma_p=sigma_p)
+            s_hat_v_hist, s_hat_a_hist = self.make_button_presses(stimulus_pairs, plot=False, sigma_v=sigma_v, sigma_a=sigma_a)
             
         n_v = np.sum(s_hat_v_hist,axis=0)/np.sum(s_hat_v_hist)  # observed response counts, per visual condition
         n_a = np.sum(s_hat_a_hist,axis=0)/np.sum(s_hat_a_hist)  # ... and auditory condition
 
-        stimulus_pairs, _ = self.generate_stimulus_pairs(trials*10, sigma_p=sigma_p)
-        s_hat_v_hist_model, s_hat_a_hist_model = self.make_button_presses(stimulus_pairs, plot=False)
+        stimulus_pairs, _ = self.generate_stimulus_pairs(trials*10, p_common=p_common, sigma_p=sigma_p)
+        s_hat_v_hist_model, s_hat_a_hist_model = self.make_button_presses(stimulus_pairs, plot=False, sigma_v=sigma_v, sigma_a=sigma_a)
 
         p_a = np.sum(s_hat_a_hist_model, axis=0)/np.sum(s_hat_a_hist_model) 
         p_v = np.sum(s_hat_v_hist_model, axis=0)/np.sum(s_hat_v_hist_model)
 
         return (n_a * np.log(p_a + eps)).sum() + (n_v * np.log(p_v + eps)).sum()
 
-    # Brute fitting (1f)
-    def brute_fitting(self, n_sample=10, trials = 10000):
+    def brute_fitting(self, n_sample=10):
         """Performing of the fitting to see which parameter combination is best
-
         """
 
         p_common = np.linspace(0, 1, n_sample)
@@ -249,7 +250,7 @@ class GenerativeModel:
                     self.sigma_a = sa
                     for sp in sigmas_p:
                         self.sigma_p = sp
-                        likelihood[num] = self.log_likelihood(trials)
+                        likelihood[num] = self.log_likelihood()
                         parameters[num, :] = np.array([p, sv, sa, sp])
                         print(likelihood[num])
                         num += 1
@@ -272,7 +273,7 @@ class GenerativeModel:
 
         return log_post
 
-
+# TODO: make a function of the class
 def rectangular_prior(parameter1, parameter2, num_bins=10, n_points=10000):
     """ Creating the rectangular prior.
     """
