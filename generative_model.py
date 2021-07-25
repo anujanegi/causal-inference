@@ -209,27 +209,26 @@ class GenerativeModel:
             plt.legend(loc="upper left", bbox_to_anchor=(1,0))
             plt.show()
                
-        return np.array(histogram_vs), np.array(histogram_as)
+        return np.array([histogram_vs, histogram_as])
 
-    def log_likelihood(self, experimental_data_v=np.array([]), experimental_data_a=np.array([]), trials=10_000, eps=1e-5, **kwargs):
+    def log_likelihood(self, data, trials=10_000, eps=1e-5, **kwargs):
         
         p_common = kwargs.get('p_common', self.p_common)
         sigma_p = kwargs.get('sigma_p', self.sigma_p)
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
         sigma_a = kwargs.get('sigma_a', self.sigma_a)
-            
-        n_v = np.sum(experimental_data_v,axis=0)
-        n_a = np.sum(experimental_data_a,axis=0)
-
+          
         stimulus_pairs, _ = self.generate_stimulus_pairs(trials*10, p_common=p_common, sigma_p=sigma_p)
-        s_hat_v_hist_model, s_hat_a_hist_model = self.make_button_presses(stimulus_pairs, plot=False, sigma_v=sigma_v, sigma_a=sigma_a)
+        model_data = self.make_button_presses(stimulus_pairs, plot=False, sigma_v=sigma_v, sigma_a=sigma_a)
+           
+        n_v = np.sum(data[0], axis=0)
+        n_a = np.sum(data[1], axis=0)
+        p_v = np.sum(model_data[0], axis=0)/np.sum(model_data[0])
+        p_a = np.sum(model_data[1], axis=0)/np.sum(model_data[1]) 
+        
+        return (n_v * np.log(p_v + eps)).sum() + (n_a * np.log(p_a + eps)).sum()
 
-        p_a = np.sum(s_hat_a_hist_model, axis=0)/np.sum(s_hat_a_hist_model) 
-        p_v = np.sum(s_hat_v_hist_model, axis=0)/np.sum(s_hat_v_hist_model)
-
-        return (n_a * np.log(p_a + eps)).sum() + (n_v * np.log(p_v + eps)).sum()
-
-    def brute_fitting(self, n_sample=10):
+    def brute_fitting(self, data, n_sample=10):
         """Performing of the fitting to see which parameter combination is best
         """
 
@@ -244,8 +243,10 @@ class GenerativeModel:
             for sv in sigmas_v:
                 for sa in sigmas_a:
                     for sp in sigmas_p:
-                        likelihood[num] = self.log_likelihood(p_commom=p, sigma_v=sv, sigma_a=sa, sigma_p=sp)
+                        likelihood[num] = self.log_likelihood(data, p_commom=p, sigma_v=sv, sigma_a=sa, sigma_p=sp)
                         parameters[num, :] = np.array([p, sv, sa, sp])
                         num += 1
 
         return likelihood, parameters
+    
+   
