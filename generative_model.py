@@ -1,6 +1,7 @@
 """model.py: Implementation of methods to understand statistical inter-relations between the variables of interest
 in the generative model"""
 
+import emcee
 import numpy as np
 from itertools import product
 import matplotlib.pyplot as plt
@@ -210,19 +211,15 @@ class GenerativeModel:
                
         return np.array(histogram_vs), np.array(histogram_as)
 
-    def log_likelihood(self, s_hat_v_hist=np.array([]), s_hat_a_hist=np.array([]), trials=10_000, eps=1e-5, **kwargs):
+    def log_likelihood(self, experimental_data_v=np.array([]), experimental_data_a=np.array([]), trials=10_000, eps=1e-5, **kwargs):
         
         p_common = kwargs.get('p_common', self.p_common)
         sigma_p = kwargs.get('sigma_p', self.sigma_p)
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
         sigma_a = kwargs.get('sigma_a', self.sigma_a)
-        
-        if s_hat_v_hist.all() or s_hat_a_hist.all() == np.array([]):
-            stimulus_pairs, _ = self.generate_stimulus_pairs(trials, p_common=p_common, sigma_p=sigma_p)
-            s_hat_v_hist, s_hat_a_hist = self.make_button_presses(stimulus_pairs, plot=False, sigma_v=sigma_v, sigma_a=sigma_a)
             
-        n_v = np.sum(s_hat_v_hist,axis=0)/np.sum(s_hat_v_hist)  # observed response counts, per visual condition
-        n_a = np.sum(s_hat_a_hist,axis=0)/np.sum(s_hat_a_hist)  # ... and auditory condition
+        n_v = np.sum(experimental_data_v,axis=0)
+        n_a = np.sum(experimental_data_a,axis=0)
 
         stimulus_pairs, _ = self.generate_stimulus_pairs(trials*10, p_common=p_common, sigma_p=sigma_p)
         s_hat_v_hist_model, s_hat_a_hist_model = self.make_button_presses(stimulus_pairs, plot=False, sigma_v=sigma_v, sigma_a=sigma_a)
@@ -249,32 +246,6 @@ class GenerativeModel:
                     for sp in sigmas_p:
                         likelihood[num] = self.log_likelihood(p_commom=p, sigma_v=sv, sigma_a=sa, sigma_p=sp)
                         parameters[num, :] = np.array([p, sv, sa, sp])
-                        print(likelihood[num])
                         num += 1
 
         return likelihood, parameters
-
-    # Section g)
-    def log_posterior(self, parameter1, parameter2, num_bins=10, eps=1e-10):
-
-        parameters = np.linspace(parameter1, parameter2, num_bins)
-        log_like = np.zeros(num_bins)
-        for i, param in enumerate(parameters):
-            ## TODO: State which parameter needs to be changed.
-            # self.x = param
-            log_like[i] = self.log_likelihood()
-
-        prior = rectangular_prior(parameter1, parameter2, num_bins)[0]
-        log_prior = np.log(prior/np.sum(prior))
-        log_post = log_like + log_prior
-
-        return log_post
-
-# TODO: make a function of the class
-def rectangular_prior(parameter1, parameter2, num_bins=10, n_points=10000):
-    """ Creating the rectangular prior.
-    """
-    values = np.random.uniform(parameter1, parameter2, n_points)
-    distribution = np.histogram(values, num_bins-1)
-
-    return distribution
