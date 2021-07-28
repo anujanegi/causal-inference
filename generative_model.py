@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 class GenerativeModel:
 
     def __init__(self):
+        """Initialises model parameters.
+        """
         self.s_v = np.array([-12, -6, 0, 6, 12])
         self.s_a = np.array([-12, -6, 0, 6, 12])
         self.p_common = 0.8
@@ -20,22 +22,18 @@ class GenerativeModel:
         self.range = np.array([-np.inf, -9, -3, 3, 9, np.inf])
 
     def probability_signal(self, x_v, x_a, cause='', **kwargs):
-        """
-        Estimates the probability of the audio and visual signals(noisy) given the cause.
+        """Estimates the probability of the audio and visual signals(noisy) given the cause.
 
-        Parameters
-        ----------
-        x_v: np.array
-            array of the current board state
-        x_a: np.array
-            player making the move
-        cause: str
-            saved state of the players
-        #TODO: add all parameters in docstring
+        Args:
+            x_v (np.array): noisy video signal
+            x_a (np.array): noisy audio signal
+            cause (str, optional): cause type of the signal - common or separate. Defaults to ''.
 
-        Returns
-        -------
-        Probability of the audio and visual signals(noisy) for the given cause.
+        Raises:
+            ValueError: If cause is not 'common' or 'separate'.
+
+        Returns:
+            float: probability
         """
         # TODO: common method for initialisation
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
@@ -62,8 +60,19 @@ class GenerativeModel:
         return probability
 
     def estimate_signal(self, x_v, x_a, type='', **kwargs):
-        # TODO: docstring
+        """Estimates the signal given the noise audio and video signal.
 
+        Args:
+            x_v (np.array): noisy video signal
+            x_a (np.array): noisy audio signal
+            type (str, optional): Type of signal - audio or video. Defaults to ''.
+
+        Raises:
+            ValueError: If type is not 'audio' or 'video'.
+
+        Returns:
+            float: estimated signal
+        """
         p_common = kwargs.get('p_common', self.p_common)
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
         sigma_a = kwargs.get('sigma_a', self.sigma_a)
@@ -87,8 +96,6 @@ class GenerativeModel:
         return c_1 + c_2
 
     def estimate_best_signal(self, x_v=0, x_a=0, cause='', type='', **kwargs):
-        # TODO: docstring
-
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
         sigma_a = kwargs.get('sigma_a', self.sigma_a)
         sigma_p = kwargs.get('sigma_p', self.sigma_p)
@@ -116,8 +123,6 @@ class GenerativeModel:
         return dividend / divisor
 
     def probability_cause(self, x_v, x_a, cause='common', **kwargs):
-        # TODO: docstring
-
         p_common = kwargs.get('p_common', self.p_common)
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
         sigma_a = kwargs.get('sigma_a', self.sigma_a)
@@ -140,20 +145,13 @@ class GenerativeModel:
             raise ValueError("Cause must either be 'common' or 'separate'!")
 
     def generate_stimulus_pairs(self, n, **kwargs):
-        """
-        Generate n stimulus pairs.
+        """Generates n stimulus pairs.
 
-        Parameters
-        ----------
-        n: int
-            number of stimulus pairs to be generated
+        Args:
+            n (int): number of stimulus pairs to be generated
 
-        Returns
-        ----------
-        stimulus_pairs: np.array
-            array with the s values of the pairs
-        is_common: bool
-            True if index of stimulus pair has a common cause
+        Returns:
+            np.array: array with the s values of the pairs
         """
         p_common = kwargs.get('p_common', self.p_common)
         sigma_p = kwargs.get('sigma_p', self.sigma_p)
@@ -171,7 +169,6 @@ class GenerativeModel:
         return stimulus_pairs
     
     def make_button_presses(self, stimulus_pairs, bins=None, plot=True, **kwargs):
-        # TODO: docstring
         # stimulus_pairs = np.array of [s_v, s_a]'s
 
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
