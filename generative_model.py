@@ -212,7 +212,7 @@ class GenerativeModel:
                
         return np.array([histogram_vs, histogram_as])
 
-    def log_likelihood(self, data, trials=10000, eps=1e-5, **kwargs):
+    def log_likelihood(self, data, trials=10000, eps=1e-3, **kwargs):
         
         p_common = kwargs.get('p_common', self.p_common)
         sigma_p = kwargs.get('sigma_p', self.sigma_p)
@@ -233,8 +233,11 @@ class GenerativeModel:
         """Performing of the fitting to see which parameter combination is best
         """
 
-        p_common = np.linspace(0, 1, n_sample)
-        sigmas_v = sigmas_a = sigmas_p = np.linspace(0.1, 20, n_sample)
+        p_common = np.linspace(0, 0.99, n_sample)
+        sigmas_v = np.hstack((1e-4, self.sigma_v + np.array((-0.1, 0, 0.1)), np.linspace(0.1, 20, n_sample-4)))
+        sigmas_a =  np.hstack((1e-4, self.sigma_a + np.array((-0.5, 0, 0.5)), np.linspace(1, 20, n_sample-4)))
+        sigmas_p = np.linspace(0.1, 20, n_sample)
+        
         likelihood = np.zeros((int(n_sample ** 4)))
         parameters = np.zeros((int(n_sample ** 4), 4))
         num = 0
