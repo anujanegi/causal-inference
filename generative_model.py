@@ -2,12 +2,10 @@
 in the generative model"""
 
 from __future__ import division
+from plot import plot_button_press_histograms
 import emcee
 import numpy as np
-from itertools import product
 import matplotlib.pyplot as plt
-
-
 
 class GenerativeModel:
 
@@ -196,19 +194,8 @@ class GenerativeModel:
 
         histogram_vs, histogram_as = np.array(histogram_vs), np.array(histogram_as)
         
-        # TODO: shift plotting to plot.py
         if plot:
-            fig, axs = plt.subplots(len(self.s_v), len(self.s_a), figsize=(20, 20))
-            for (i, j), k in zip(np.array(list(product(range(len(self.s_v)), range(len(self.s_a))))), range(len(stimulus_pairs_unique))):
-                axs[i][j].bar(self.s_v, histogram_vs[k], tick_label=self.s_v, alpha=.7, label='video')
-                axs[i][j].bar(self.s_a, histogram_as[k], tick_label=self.s_a, alpha=.7, label='audio')
-                axs[i][j].set_xlabel('Position estimates; $\hat{s_V}$, $\hat{s_V}$')
-                axs[i][j].set_ylabel('Count')
-                axs[i][j].set_title('Position estimates for $s_V$=%.1f, $s_a$=%.1f,' % (stimulus_pairs_unique[k][0], stimulus_pairs_unique[k][1]))
-                
-            fig.tight_layout()
-            plt.legend(loc="upper left", bbox_to_anchor=(1,0))
-            plt.show()
+            plot_button_press_histograms(histogram_vs, histogram_as, self.s_v, self.s_a, stimulus_pairs_unique)
                
         return np.array([histogram_vs, histogram_as])
 

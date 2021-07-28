@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from itertools import product
 import corner
 
 def plot_figure(x, y, xlabel='', ylabel='', label=' ', title='', fmt='-'):
@@ -72,6 +73,19 @@ def plot_estimate_stimulus_position(x_v, x_a, estimate_function, xlabel='', ylab
         plot_figure(x_v-x_a, estimate_function(x_v, x_a, type='audio', sigma_p=sigma_p), xlabel, ylabel, '$\sigma_p$ = %.2f'%sigma_p, 'Effect of $\sigma_p$', fmt='--')
     
     plt.suptitle(title)
+    
+def plot_button_press_histograms(histogram_vs, histogram_as, s_v, s_a, stimulus_pairs_unique):
+    fig, axs = plt.subplots(len(s_v), len(s_a), figsize=(20, 20))
+    for (i, j), k in zip(np.array(list(product(range(len(s_v)), range(len(s_a))))), range(len(stimulus_pairs_unique))):
+        axs[i][j].bar(s_v, histogram_vs[k], tick_label=s_v, alpha=.7, label='video')
+        axs[i][j].bar(s_a, histogram_as[k], tick_label=s_a, alpha=.7, label='audio')
+        axs[i][j].set_xlabel('Position estimates; $\hat{s_V}$, $\hat{s_V}$')
+        axs[i][j].set_ylabel('Count')
+        axs[i][j].set_title('Position estimates for $s_V$=%.1f, $s_a$=%.1f,' % (stimulus_pairs_unique[k][0], stimulus_pairs_unique[k][1]))
+        
+    fig.tight_layout()
+    plt.legend(loc="upper left", bbox_to_anchor=(1,0))
+    plt.show()
     
 def plot_marginal_likelihoods(likelihoods, parameter_combinations, parameters, parameter_estimates, true_values, title='Marginal Likelihoods wrt to each parameter', n_sample=10):
 
