@@ -224,9 +224,7 @@ class GenerativeModel:
             return -np.inf
         
     def brute_fitting(self, data, n_sample=10):
-        """Performing of the fitting to see which parameter combination is best
-        """
-
+        
         p_common = np.linspace(0, 0.9, n_sample)
         sigmas_v = np.hstack((1e-2, self.sigma_v + np.array((-0.1, 0, 0.1)), np.linspace(0.1, 20, n_sample-4)))
         sigmas_a =  np.hstack((1e-2, self.sigma_a + np.array((-0.1, 0, 0.1)), np.linspace(1, 20, n_sample-4)))

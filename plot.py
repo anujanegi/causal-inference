@@ -86,6 +86,36 @@ def plot_button_press_histograms(histogram_vs, histogram_as, s_v, s_a, stimulus_
     fig.tight_layout()
     plt.legend(loc="upper left", bbox_to_anchor=(1,0))
     plt.show()
+
+def plot_heatmap(estimated_s_v, estimated_s_a, s_vs, s_v_discrete, s_a_discrete, bins=50):
+    mat1 = np.zeros((bins, len(s_v_discrete)))
+    mat2 = np.zeros((bins, len(s_a_discrete)))
+
+    for i, s_v in enumerate(s_v_discrete):
+        counts, edges = np.histogram(estimated_s_v[s_vs==s_v], bins, (-15, 15))
+        mat1[:, i] = counts/len(counts)
+
+    for i, s_a in enumerate(s_a_discrete):
+        counts, edges = np.histogram(estimated_s_a[s_vs==s_a], bins, (-15, 15))
+        mat2[:, i] = counts/len(counts)
+
+    plt.imshow(mat1, aspect='auto')
+    plt.xticks(ticks=np.arange(0,5), labels=s_v_discrete)
+    plt.yticks(ticks=np.arange(0, bins+bins/5, bins/5), labels=edges[np.arange(0, bins+bins/5, bins/5, dtype=int)])
+    plt.xlabel('$s_v$')
+    plt.ylabel('${\hat{s}_v}$')
+    plt.title('$p(\hat{s}_{v}|s_v, s_a=0)$')
+    plt.colorbar()
+    plt.show()
+   
+    plt.imshow(mat2, aspect='auto')
+    plt.xticks(ticks=np.arange(0,5), labels=s_v_discrete)
+    plt.yticks(ticks=np.arange(0, bins+bins/5, bins/5), labels=edges[np.arange(0, bins+bins/5, bins/5, dtype=int)])
+    plt.xlabel('$s_v$')
+    plt.ylabel('$\hat{s}_{a}$')
+    plt.title('$p(\hat{s}_{a}|s_v, s_a=0)$')
+    plt.colorbar()
+    plt.show()
     
 def plot_marginal_likelihoods(likelihoods, parameter_combinations, parameters, parameter_estimates, true_values, title='Marginal Likelihoods wrt to each parameter', n_sample=10):
 
