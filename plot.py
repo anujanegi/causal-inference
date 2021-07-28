@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+import corner
 
 def plot_figure(x, y, xlabel='', ylabel='', label=' ', title='', fmt='-'):
     plt.plot(x, y, fmt, label=label)
@@ -89,24 +89,27 @@ def plot_marginal_likelihoods(likelihoods, parameter_combinations, parameters, p
     fig = plt.figure(figsize=(20,10))
 
     fig.add_subplot(221)
-    plot_figure(parameters[0], marginal_likelihoods_p_common, '$p_{commom}$', 'Log Likelihood', fmt='o')    
+    plot_figure(parameters[0], marginal_likelihoods_p_common, '$p_{commom}$', 'Log Likelihood', 'marginal', fmt='o')    
     plt.vlines(parameter_estimates[0], np.min(marginal_likelihoods_p_common), np.max(marginal_likelihoods_p_common), label='global max-likelihood')
     plt.vlines(true_values[0], np.min(marginal_likelihoods_p_common), np.max(marginal_likelihoods_p_common), 'r', label='true value')
 
     fig.add_subplot(222)
-    plot_figure(parameters[1], marginal_likelihoods_sigma_v, '$\sigma_v$', 'Log Likelihood', fmt='o')
+    plot_figure(parameters[1], marginal_likelihoods_sigma_v, '$\sigma_v$', 'Log Likelihood', 'marginal', fmt='o')
     plt.vlines(parameter_estimates[1], np.min(marginal_likelihoods_sigma_v), np.max(marginal_likelihoods_sigma_v), label='global max-likelihood')
     plt.vlines(true_values[1], np.min(marginal_likelihoods_sigma_v), np.max(marginal_likelihoods_sigma_v), 'r', label='true value')
     
     fig.add_subplot(223)
-    plot_figure(parameters[2], marginal_likelihoods_sigma_a, '$\sigma_a$', 'Log Likelihood', fmt='o')
+    plot_figure(parameters[2], marginal_likelihoods_sigma_a, '$\sigma_a$', 'Log Likelihood', 'marginal', fmt='o')
     plt.vlines(parameter_estimates[2], np.min(marginal_likelihoods_sigma_a), np.max(marginal_likelihoods_sigma_a), label='global max-likelihood')
     plt.vlines(true_values[2], np.min(marginal_likelihoods_sigma_a), np.max(marginal_likelihoods_sigma_a), 'r', label='true value')
     
     fig.add_subplot(224)
-    plot_figure(parameters[3], marginal_likelihoods_sigma_p, '$\sigma_p$', 'Log Likelihood', fmt='o')
+    plot_figure(parameters[3], marginal_likelihoods_sigma_p, '$\sigma_p$', 'Log Likelihood', 'marginal', fmt='o')
     plt.vlines(parameter_estimates[3], np.min(marginal_likelihoods_sigma_p), np.max(marginal_likelihoods_sigma_p), label='global max-likelihood')
     plt.vlines(true_values[3], np.min(marginal_likelihoods_sigma_p), np.max(marginal_likelihoods_sigma_p), 'r', label='true value')
     
     plt.suptitle(title)
     plt.legend(loc="upper left", bbox_to_anchor=(1,0))
+
+def plot_corner(flat_samples, labels, truths):
+    corner.corner(flat_samples , labels=labels, truths=truths, show_titles=True)
