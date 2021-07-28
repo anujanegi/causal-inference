@@ -72,3 +72,41 @@ def plot_estimate_stimulus_position(x_v, x_a, estimate_function, xlabel='', ylab
         plot_figure(x_v-x_a, estimate_function(x_v, x_a, type='audio', sigma_p=sigma_p), xlabel, ylabel, '$\sigma_p$ = %.2f'%sigma_p, 'Effect of $\sigma_p$', fmt='--')
     
     plt.suptitle(title)
+    
+def plot_marginal_likelihoods(likelihoods, parameter_combinations, parameters, parameter_estimates, true_values, title='Marginal Likelihoods wrt to each parameter', n_sample=10):
+
+    marginal_likelihoods_p_common = np.zeros((10, ))
+    marginal_likelihoods_sigma_v = np.zeros((10, ))
+    marginal_likelihoods_sigma_a = np.zeros((10, ))
+    marginal_likelihoods_sigma_p = np.zeros((10, ))
+
+    for i in range(n_sample):
+        marginal_likelihoods_p_common[i] = np.max(likelihoods[np.where(parameter_combinations[:,0]==parameters[0][i])])
+        marginal_likelihoods_sigma_v[i] = np.max(likelihoods[np.where(parameter_combinations[:,1]==parameters[1][i])])
+        marginal_likelihoods_sigma_a[i] = np.max(likelihoods[np.where(parameter_combinations[:,2]==parameters[2][i])])
+        marginal_likelihoods_sigma_p[i] = np.max(likelihoods[np.where(parameter_combinations[:,3]==parameters[3][i])])
+    
+    fig = plt.figure(figsize=(20,10))
+
+    fig.add_subplot(221)
+    plot_figure(parameters[0], marginal_likelihoods_p_common, '$p_{commom}$', 'Log Likelihood', fmt='o')    
+    plt.vlines(parameter_estimates[0], np.min(marginal_likelihoods_p_common), np.max(marginal_likelihoods_p_common), label='global max-likelihood')
+    plt.vlines(true_values[0], np.min(marginal_likelihoods_p_common), np.max(marginal_likelihoods_p_common), 'r', label='true value')
+
+    fig.add_subplot(222)
+    plot_figure(parameters[1], marginal_likelihoods_sigma_v, '$\sigma_v$', 'Log Likelihood', fmt='o')
+    plt.vlines(parameter_estimates[1], np.min(marginal_likelihoods_sigma_v), np.max(marginal_likelihoods_sigma_v), label='global max-likelihood')
+    plt.vlines(true_values[1], np.min(marginal_likelihoods_sigma_v), np.max(marginal_likelihoods_sigma_v), 'r', label='true value')
+    
+    fig.add_subplot(223)
+    plot_figure(parameters[2], marginal_likelihoods_sigma_a, '$\sigma_a$', 'Log Likelihood', fmt='o')
+    plt.vlines(parameter_estimates[2], np.min(marginal_likelihoods_sigma_a), np.max(marginal_likelihoods_sigma_a), label='global max-likelihood')
+    plt.vlines(true_values[2], np.min(marginal_likelihoods_sigma_a), np.max(marginal_likelihoods_sigma_a), 'r', label='true value')
+    
+    fig.add_subplot(224)
+    plot_figure(parameters[3], marginal_likelihoods_sigma_p, '$\sigma_p$', 'Log Likelihood', fmt='o')
+    plt.vlines(parameter_estimates[3], np.min(marginal_likelihoods_sigma_p), np.max(marginal_likelihoods_sigma_p), label='global max-likelihood')
+    plt.vlines(true_values[3], np.min(marginal_likelihoods_sigma_p), np.max(marginal_likelihoods_sigma_p), 'r', label='true value')
+    
+    plt.suptitle(title)
+    plt.legend(loc="upper left", bbox_to_anchor=(1,0))
