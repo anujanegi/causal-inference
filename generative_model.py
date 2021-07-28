@@ -227,38 +227,45 @@ class GenerativeModel:
         p_v = np.sum(model_data[0], axis=0)/np.sum(model_data[0])
         p_a = np.sum(model_data[1], axis=0)/np.sum(model_data[1]) 
         
-        return (n_v * np.log(p_v + eps)).sum() + (n_a * np.log(p_a + eps)).sum()
-
-    def brute_fitting(self, data, n_sample=10):
-        """Performing of the fitting to see which parameter combination is best
-        """
-
-        p_common = np.linspace(0, 0.99, n_sample)
-        sigmas_v = np.hstack((1e-4, self.sigma_v + np.array((-0.1, 0, 0.1)), np.linspace(0.1, 20, n_sample-4)))
-        sigmas_a =  np.hstack((1e-4, self.sigma_a + np.array((-0.5, 0, 0.5)), np.linspace(1, 20, n_sample-4)))
-        sigmas_p = np.linspace(0.1, 20, n_sample)
+        return np.sum(n_v * np.log(p_v + eps)) + np.sum(n_a * np.log(p_a + eps))
         
-        likelihood = np.zeros((int(n_sample ** 4)))
-        parameters = np.zeros((int(n_sample ** 4), 4))
-        num = 0
-
-        # TODO: zip parameter combinations
-        for p in p_common:
-            for sv in sigmas_v:
-                for sa in sigmas_a:
-                    for sp in sigmas_p:
-                        likelihood[num] = self.log_likelihood(data, p_commom=p, sigma_v=sv, sigma_a=sa, sigma_p=sp)
-                        parameters[num, :] = np.array([p, sv, sa, sp])
-                        num += 1
-
-        return likelihood, parameters
-    
     def log_probability(self, parameter_array, data, parameter_range=None):
     
-        parameter_range = np.array([[0, 1], [1e-2, 20], [1e-5, 20], [1e-5, 20]]) if parameter_range is None else parameter_range
+        parameter_range = np.array([[0, 1], [1e-2, 20], [1e-2, 20], [1e-2, 20]]) if parameter_range is None else parameter_range
         print(parameter_array)
         is_rectangular_prior = np.all(np.logical_and(parameter_array > parameter_range[:, 0], parameter_array < parameter_range[:, 1]))
         if is_rectangular_prior:
             return self.log_likelihood(data, p_commom=parameter_array[0], sigma_v=parameter_array[1], sigma_a=parameter_array[2], sigma_p=parameter_array[3])
         else:
             return -np.inf
+        
+    def brute_fitting(self, data, n_sample=10):
+        """Performing of the fitting to see which parameter combination is best
+        """
+
+        p_common = np.linspace(0, 0.9, n_sample)
+        sigmas_v = np.hstack((1e-2, self.sigma_v + np.array((-0.1, 0, 0.1)), np.linspace(0.1, 20, n_sample-4)))
+        sigmas_a =  np.hstack((1e-2, self.sigma_a + np.array((-0.1, 0, 0.1)), np.linspace(1, 20, n_sample-4)))
+        sigmas_p = np.linspace(1e-2, 20, n_sample)
+        
+        likelihood = np.zeros((int(n_sample ** 4)))
+        parameter_combinations = np.zeros((int(n_sample ** 4), 4))
+        num = 0
+        
+        for p in p_common:
+            for sv in sigmas_v:
+                for sa in sigmas_a:
+                    for sp in sigmas_p:
+                        likelihood[num] = self.log_likelihood(data, p_commom=p, sigma_v=sv, sigma_a=sa, sigma_p=sp)
+                        parameter_combinations[num, :] = np.array([p, sv, sa, sp])
+                        num += 1
+
+        return likelihood, parameter_combinations, [p_common, sigmas_v, sigmas_a, sigmas_p]
+    
+    def MCMC_sampling(self, log_prob_fn, log_prob_fn_args, max_parameter_limits=[], ndim=4, nwalkers=32, nsteps=600):
+        
+        p0 = np.random.rand(int(nwalkers), int(ndim))*max_parameter_limits
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob_fn, args=[log_prob_fn_args])
+        sampler.run_mcmc(p0, nsteps, progress=True) 
+        
+        return sampler
