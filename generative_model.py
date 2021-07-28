@@ -1,10 +1,12 @@
 """model.py: Implementation of methods to understand statistical inter-relations between the variables of interest
 in the generative model"""
 
+from __future__ import division
 import emcee
 import numpy as np
 from itertools import product
 import matplotlib.pyplot as plt
+
 
 
 class GenerativeModel:
@@ -160,17 +162,16 @@ class GenerativeModel:
 
         stimulus_pairs = np.zeros((n, 2))
         cause = np.random.binomial(1, p_common, n) + 1
-        is_common = np.logical_not((cause - 1).astype(bool))
 
         stimulus_pairs[cause == 1, 0] = stimulus_pairs[cause == 1, 1] = np.random.normal(0, sigma_p, np.sum(cause == 1))
         stimulus_pairs[cause == 2, :] = np.random.normal(0, sigma_p, (np.sum(cause == 2), 2))
         
         # map stimulus pairs
-        stimulus_pairs[:, 0] = [min(self.s_v, key=lambda x:abs(x-i)) for i in stimulus_pairs[:, 0]]
-        stimulus_pairs[:, 1] = [min(self.s_a, key=lambda x:abs(x-i)) for i in stimulus_pairs[:, 1]]
+        s_v_expanded = np.ones((stimulus_pairs.shape[0],len(self.s_v), stimulus_pairs.shape[1]))*np.array((self.s_v, self.s_a)).T
+        stimulus_pairs = self.s_v[np.argmin(np.abs(s_v_expanded - np.expand_dims(stimulus_pairs, axis=1)), axis=1)]
 
-        return stimulus_pairs, is_common
-
+        return stimulus_pairs
+    
     def make_button_presses(self, stimulus_pairs, bins=None, plot=True, **kwargs):
         # TODO: docstring
         # stimulus_pairs = np.array of [s_v, s_a]'s
@@ -211,14 +212,14 @@ class GenerativeModel:
                
         return np.array([histogram_vs, histogram_as])
 
-    def log_likelihood(self, data, trials=10_000, eps=1e-5, **kwargs):
+    def log_likelihood(self, data, trials=10000, eps=1e-5, **kwargs):
         
         p_common = kwargs.get('p_common', self.p_common)
         sigma_p = kwargs.get('sigma_p', self.sigma_p)
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
         sigma_a = kwargs.get('sigma_a', self.sigma_a)
           
-        stimulus_pairs, _ = self.generate_stimulus_pairs(trials*10, p_common=p_common, sigma_p=sigma_p)
+        stimulus_pairs = self.generate_stimulus_pairs(trials*10, p_common=p_common, sigma_p=sigma_p)
         model_data = self.make_button_presses(stimulus_pairs, plot=False, sigma_v=sigma_v, sigma_a=sigma_a)
            
         n_v = np.sum(data[0], axis=0)
@@ -249,4 +250,3 @@ class GenerativeModel:
 
         return likelihood, parameters
     
-   
