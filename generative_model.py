@@ -250,3 +250,12 @@ class GenerativeModel:
 
         return likelihood, parameters
     
+    def log_probability(self, parameter_array, data, parameter_range=None):
+    
+        parameter_range = np.array([[0, 1], [1e-2, 20], [1e-5, 20], [1e-5, 20]]) if parameter_range is None else parameter_range
+        print(parameter_array)
+        is_rectangular_prior = np.all(np.logical_and(parameter_array > parameter_range[:, 0], parameter_array < parameter_range[:, 1]))
+        if is_rectangular_prior:
+            return self.log_likelihood(data, p_commom=parameter_array[0], sigma_v=parameter_array[1], sigma_a=parameter_array[2], sigma_p=parameter_array[3])
+        else:
+            return -np.inf
