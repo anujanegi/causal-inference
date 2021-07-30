@@ -168,7 +168,7 @@ class GenerativeModel:
 
         return stimulus_pairs
     
-    def make_button_presses(self, stimulus_pairs, bins=None, plot=True, **kwargs):
+    def make_button_presses(self, stimulus_pairs, bins=None, plot=True, saved_image=False, **kwargs):
         # stimulus_pairs = np.array of [s_v, s_a]'s
 
         sigma_v = kwargs.get('sigma_v', self.sigma_v)
@@ -193,7 +193,10 @@ class GenerativeModel:
         
         if plot:
             plot_button_press_histograms(histogram_vs, histogram_as, self.s_v, self.s_a, stimulus_pairs_unique)
-               
+
+        if plot and saved_image:
+            plt.savefig('2c.jpg');
+
         return np.array([histogram_vs, histogram_as])
 
     def log_likelihood(self, data, trials=10000, eps=1e-3, **kwargs):

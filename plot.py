@@ -3,17 +3,21 @@ import matplotlib.pyplot as plt
 from itertools import product
 import corner
 
-def plot_figure(x, y, xlabel='', ylabel='', label=' ', title='', fmt='-'):
+def plot_figure(x, y, xlabel='', ylabel='', label=' ', title='', fmt='-', saved_image=False):
     plt.plot(x, y, fmt, label=label)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
     plt.legend()
+    plt.tight_layout()
+
+    if saved_image is True:
+        plt.savefig('1c_default_param.jpg')
 
 def plot_probability_varying_parameters(x_v, x_a, probability_function, xlabel='', ylabel='', title=''):
     
     fig = plt.figure(figsize=(20,10))
-
+    plt.rc('font', size=15)
     fig.add_subplot(221)
     
     p_common_values = np.linspace(0.1, 1, 5)
@@ -40,10 +44,15 @@ def plot_probability_varying_parameters(x_v, x_a, probability_function, xlabel='
     
     plt.suptitle(title)
 
+    plt.tight_layout()
+
 def plot_estimate_stimulus_position(x_v, x_a, estimate_function, xlabel='', ylabel='', title=''):
 
-    fig = plt.figure(figsize=(20,10))
+    plt.rc('font', size=13)
+    plt.rc('axes', titlesize=20)
+    plt.rc('axes', labelsize=18)
 
+    fig = plt.figure(figsize=(20,10))
     fig.add_subplot(221)
     
     p_common_values = np.linspace(0.1, 1, 5)
@@ -75,19 +84,22 @@ def plot_estimate_stimulus_position(x_v, x_a, estimate_function, xlabel='', ylab
     plt.suptitle(title)
     
 def plot_button_press_histograms(histogram_vs, histogram_as, s_v, s_a, stimulus_pairs_unique):
+    plt.rc('axes', titlesize=18)
+    plt.rc('axes', labelsize=18)
     fig, axs = plt.subplots(len(s_v), len(s_a), figsize=(20, 20))
     for (i, j), k in zip(np.array(list(product(range(len(s_v)), range(len(s_a))))), range(len(stimulus_pairs_unique))):
         axs[i][j].bar(s_v, histogram_vs[k], tick_label=s_v, alpha=.7, label='video')
         axs[i][j].bar(s_a, histogram_as[k], tick_label=s_a, alpha=.7, label='audio')
-        axs[i][j].set_xlabel('Position estimates; $\hat{s_V}$, $\hat{s_V}$')
+        axs[i][j].set_xlabel('$\hat{s_V}$, $\hat{s_A}$')
         axs[i][j].set_ylabel('Count')
-        axs[i][j].set_title('Position estimates for $s_V$=%.1f, $s_a$=%.1f,' % (stimulus_pairs_unique[k][0], stimulus_pairs_unique[k][1]))
-        
+        axs[i][j].set_title('$s_V$=%.1f, $s_A$=%.1f,' % (stimulus_pairs_unique[k][0], stimulus_pairs_unique[k][1]))
+        # axs[i][j].legend(loc="upper left", bbox_to_anchor=(1, 0))
+
+    plt.legend(loc="upper left", bbox_to_anchor=(1, 0), fontsize= 16)
     fig.tight_layout()
-    plt.legend(loc="upper left", bbox_to_anchor=(1,0))
     plt.show()
 
-def plot_heatmap(estimated_s_v, estimated_s_a, s_vs, s_v_discrete, s_a_discrete, bins=50):
+def plot_heatmap(estimated_s_v, estimated_s_a, s_vs, s_v_discrete, s_a_discrete, bins=100, save_image = False):
     mat1 = np.zeros((bins, len(s_v_discrete)))
     mat2 = np.zeros((bins, len(s_a_discrete)))
 
@@ -100,6 +112,7 @@ def plot_heatmap(estimated_s_v, estimated_s_a, s_vs, s_v_discrete, s_a_discrete,
         mat2[:, i] = counts/len(counts)
 
     plt.imshow(mat1, aspect='auto')
+    plt.rc('font', size=15)
     plt.xticks(ticks=np.arange(0,5), labels=s_v_discrete)
     plt.yticks(ticks=np.arange(0, bins+bins/5, bins/5), labels=edges[np.arange(0, bins+bins/5, bins/5, dtype=int)])
     plt.xlabel('$s_v$')
@@ -116,6 +129,9 @@ def plot_heatmap(estimated_s_v, estimated_s_a, s_vs, s_v_discrete, s_a_discrete,
     plt.title('$p(\hat{s}_{a}|s_v, s_a=0)$')
     plt.colorbar()
     plt.show()
+
+    if save_image is True:
+        plt.savefig('1f.jpg')
     
 def plot_marginal_likelihoods(likelihoods, parameter_combinations, parameters, parameter_estimates, true_values, title='Marginal Likelihoods wrt to each parameter', n_sample=10):
 
@@ -136,17 +152,20 @@ def plot_marginal_likelihoods(likelihoods, parameter_combinations, parameters, p
     plot_figure(parameters[0], marginal_likelihoods_p_common, '$p_{commom}$', 'Log Likelihood', 'marginal', fmt='o')    
     plt.vlines(parameter_estimates[0], np.min(marginal_likelihoods_p_common), np.max(marginal_likelihoods_p_common), label='global max-likelihood')
     plt.vlines(true_values[0], np.min(marginal_likelihoods_p_common), np.max(marginal_likelihoods_p_common), 'r', label='true value')
+    plt.legend().remove()
 
     fig.add_subplot(222)
     plot_figure(parameters[1], marginal_likelihoods_sigma_v, '$\sigma_v$', 'Log Likelihood', 'marginal', fmt='o')
     plt.vlines(parameter_estimates[1], np.min(marginal_likelihoods_sigma_v), np.max(marginal_likelihoods_sigma_v), label='global max-likelihood')
     plt.vlines(true_values[1], np.min(marginal_likelihoods_sigma_v), np.max(marginal_likelihoods_sigma_v), 'r', label='true value')
-    
+    plt.legend().remove()
+
     fig.add_subplot(223)
     plot_figure(parameters[2], marginal_likelihoods_sigma_a, '$\sigma_a$', 'Log Likelihood', 'marginal', fmt='o')
     plt.vlines(parameter_estimates[2], np.min(marginal_likelihoods_sigma_a), np.max(marginal_likelihoods_sigma_a), label='global max-likelihood')
     plt.vlines(true_values[2], np.min(marginal_likelihoods_sigma_a), np.max(marginal_likelihoods_sigma_a), 'r', label='true value')
-    
+    plt.legend().remove()
+
     fig.add_subplot(224)
     plot_figure(parameters[3], marginal_likelihoods_sigma_p, '$\sigma_p$', 'Log Likelihood', 'marginal', fmt='o')
     plt.vlines(parameter_estimates[3], np.min(marginal_likelihoods_sigma_p), np.max(marginal_likelihoods_sigma_p), label='global max-likelihood')
